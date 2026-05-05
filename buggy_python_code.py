@@ -9,11 +9,15 @@ app = flask.Flask(__name__)
 @app.route("/")
 def index():
     version = flask.request.args.get("urllib_version")
-    url = flask.request.args.get("url")
-    return fetch_website(version, url)
+    target = flask.request.args.get("url")
+    return fetch_website(version, target)
 
         
 CONFIG = {"API_KEY": "771df488714111d39138eb60df756e6b"}
+ALLOWED_URLS = {
+    "google": "https://www.google.com",
+    "example": "https://example.com",
+}
 class Person(object):
     def __init__(self, name):
         self.name = name
@@ -23,7 +27,7 @@ def print_nametag(format_string, person):
     print(format_string.format(person=person))
 
 
-def fetch_website(urllib_version, url):
+def fetch_website(urllib_version, target):
     # Import only supported versions (2 or 3) without dynamic code execution
     if str(urllib_version) == "3":
         import urllib3 as urllib
@@ -31,8 +35,13 @@ def fetch_website(urllib_version, url):
         import urllib2 as urllib
     else:
         raise ValueError("Unsupported urllib version")
+
+    # Resolve user input to a server-controlled allowlisted URL
+    if target not in ALLOWED_URLS:
+        raise ValueError("Unsupported target")
+    url = ALLOWED_URLS[target]
+
     # Fetch and print the requested URL
- 
     try: 
         http = urllib.PoolManager()
         r = http.request('GET', url)
